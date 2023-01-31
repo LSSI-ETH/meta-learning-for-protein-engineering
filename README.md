@@ -3,7 +3,7 @@
 
 # Meta Learning Improves Robustness and Performance in Machine Learning-Guided Protein Engineering
 
-This repository contains the scripts to perform the analysis described in Minot & Reddy 2023 [[1](https://www.biorxiv.org/)].
+This repository contains code to perform the analysis described in Minot & Reddy 2023 [[1](https://doi.org/10.1101/2023.01.30.526201)].
 
 ## Table of contents
 1. [Prepare Working Environment (Optional)](#prepare-working-environment)
@@ -42,6 +42,7 @@ The full pipeline to reproduce the study, written in Python, can be summarised i
 
 ### Step 1 - Preprocessing
 Note: Raw data will be made available following publication.
+
 To execute preprocessing and train/test splitting for each task, unizip `data/`. 
 
 To download and start from raw deep sequencing (NGS) data, execute step A). To start from preprocessed NGS data contained in this repo, skip A) and head to step B). In `scripts/`:
@@ -70,7 +71,15 @@ Run python scripts in `plot/`:
 Please cite our work when referencing this repository.
 
 ```
-update to follow posting to biorxiv
+@article{minot_meta_2023,
+	title = {Meta {Learning} {Improves} {Robustness} and {Performance} in {Machine} {Learning}-{Guided} {Protein} {Engineering}},
+	url = {https://www.biorxiv.org/content/early/2023/01/30/2023.01.30.526201},
+	doi = {10.1101/2023.01.30.526201},
+	journal = {bioRxiv},
+	author = {Minot, Mason and Reddy, Sai T},
+	year = {2023},
+	note = {Publisher: Cold Spring Harbor Laboratory
+}
 ```
 
 ## Citing Supporting Repositories
