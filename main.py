@@ -29,7 +29,7 @@ def create_parser():
     parser.add_argument('--trunc', default='0.75', type=float,
                         help='training data truncate factor (float) between 0 and 1')
     parser.add_argument('--base_model', default='cnn', type=str,
-                        help='base model to use, base, resnet, or densenet')
+                        help='base model to use, cnn, transformer, logistic_regression, mlp')
     parser.add_argument('--data_type', default='4d5_syn', type=str,
                         help='library dataset, options: 4d5_syn, 4d5_exp, 5a12_PUL_syn, 5a12_PUL_exp, 5a12_2ag')
     parser.add_argument('--noise_fraction', default=0.0, type=float,
