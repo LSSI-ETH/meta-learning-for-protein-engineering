@@ -44,9 +44,7 @@ class MetaNet(nn.Module):
 
     def forward(self, hx, y):
         y_emb = self.cls_emb(y)
-        print(f'y_emb.shape = {y_emb.shape}')
         hin = torch.cat([hx, y_emb], dim=-1)
-        print(f'hin.shape = {hin.shape}')
         logit = self.net(hin)
         out = F.softmax(logit, -1)
         return out
@@ -169,7 +167,6 @@ class MLC(BaseModel):
             # given current meta net, get corrected label
             logit_s, x_s_h = self.mlc_get_predictions(self.model, inputs)
             
-            print(f'LOGIT SHAPE = {x_s_h.shape}')
             pseudo_target_s = self.meta_net(x_s_h.detach(), targets)
             loss_s = soft_cross_entropy(logit_s, pseudo_target_s)
             
