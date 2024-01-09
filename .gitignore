@@ -130,8 +130,6 @@ dmypy.json
 
 *.zip
 .zip
-*.csv
-.csv
 *.ipynb
 .ipynb
 
