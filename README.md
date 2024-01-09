@@ -3,16 +3,17 @@
 
 # Meta Learning Improves Robustness and Performance in Machine Learning-Guided Protein Engineering
 
-This repository contains code to perform the analysis described in Minot & Reddy 2023 [[1](https://doi.org/10.1101/2023.01.30.526201)].
+This repository contains code to perform the analysis described [[Minot & Reddy 2024](https://doi.org/10.1016/j.cels.2023.12.003)].
 
 ## Table of contents
-1. [Prepare Working Environment (Optional)](#prepare-working-environment)
-2. [Reproducing Study Results](#reproducing-study-results)
-3. [Citing This Work](#citing-this-work)
-3. [Citing Supporting Repositories](#citing-supporting-repositories)
+1. [Prepare Working Environment](#prepare-working-environment)
+2. [Datasets](#datasets)
+3. [Reproducing Study Results](#reproducing-study-results)
+4. [Citing This Work](#citing-this-work)
+5. [Citing Supporting Repositories](#citing-supporting-repositories)
 
 
-## Prepare Working Environment (Optional)
+## Prepare Working Environment
 
 #### Setup with Conda
 
@@ -31,6 +32,12 @@ Or Unix / MacOS:
 
 Note: study results were executed with torch 1.11.0+cu113. Environment contains torch 1.11.0
 
+## Datasets 
+
+
+The following data is provided in `data/` to facilitate ease of use:
+1. preprocessed NGS data in `data/4d5` and `data/5a12`
+2. Fully processed train, meta, validation, and test sets are planned for upload. In the meantime, one can curate the data into train, val, meta, and test sets for each learning task via the preprocessing pipeline described in Step 1 below.
 
 ## Reproducing Study Results
 
@@ -41,29 +48,31 @@ The full pipeline to reproduce the study, written in Python, can be summarised i
  3. Plot results.
 
 ### Step 1 - Preprocessing
-Note: Raw data will be made available following publication.
-
-To execute preprocessing and train/test splitting for each task, unizip `data/`. 
 
 To download and start from raw deep sequencing (NGS) data, execute step A). To start from preprocessed NGS data contained in this repo, skip A) and head to step B). In `scripts/`:
 
-#### A) From raw NGS. 
-After installing BBDUK [[2](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/installation-guide/)], download raw NGS data to `data/raw_ngs`. Modify the path to BBDUK and this repo before executing `5a12_preprocessing_raw_ngs.sh` and `4d5_preprocessing_raw_ngs.sh`. Then 
+#### A) Raw Data
+
+Raw data is available at [[NCBI](https://www.ncbi.nlm.nih.gov/bioproject/?term=1029889)]
+or on Mendeley in two parts: [[Part 1](https://data.mendeley.com/datasets/56h8gp94fj/1)] and [[Part 2](https://data.mendeley.com/datasets/s829ccsg6f/1)].
+Save data to `data/raw_ngs/`.
+
+After installing [[BBDUK](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/installation-guide/)]. Modify the path to BBDUK and this repo before executing `5a12_preprocessing_raw_ngs.sh` and `4d5_preprocessing_raw_ngs.sh`. Then proceed to B).
+
 
 #### B) From preprocessed NGS:
 
-Modify the path to this repo before executing `5a12_preprocessing.sh` and `4d5_preprocessing.sh`
-
-Processed data sets will be added to `data/`.
+To execute preprocessing and train/test splitting for each task, modify the path to this repo in `5a12_preprocessing.sh` and `4d5_preprocessing.sh` and run the scripts.
+Processed datasets for the full analysis in the paper will then be added to `data/`.
 
 
 ### Step 2 - Model Training and Evaluation
-Run scripts in `scripts/run_models/`. For PUDMS [[3](https://github.com/RomeroLab/pudms)], ensure necessary R packages are installed.
 
-This will populate the folder `results/` with .CSV files in the appropriate format for plotting in Step 3.
+Run scripts in `scripts/run_models/`. This will populate the folder `results/` with .csv files in the appropriate format for plotting in Step 3.
 
 
 ### Setp 3 - Plot Results
+
 Run python scripts in `plot/`:
 
 ## Citing this Work
@@ -71,14 +80,14 @@ Run python scripts in `plot/`:
 Please cite our work when referencing this repository.
 
 ```
-@article{minot_meta_2023,
-	title = {Meta {Learning} {Improves} {Robustness} and {Performance} in {Machine} {Learning}-{Guided} {Protein} {Engineering}},
-	url = {https://www.biorxiv.org/content/early/2023/01/30/2023.01.30.526201},
-	doi = {10.1101/2023.01.30.526201},
-	journal = {bioRxiv},
-	author = {Minot, Mason and Reddy, Sai T},
-	year = {2023},
-	note = {Publisher: Cold Spring Harbor Laboratory
+@article{minot_meta_2024,
+	title = {Meta learning addresses noisy and under-labeled data in machine learning-guided antibody engineering},
+	issn = {2405-4712},
+	url = {https://www.sciencedirect.com/science/article/pii/S2405471223003332},
+	doi = {https://doi.org/10.1016/j.cels.2023.12.003},
+	journal = {Cell Systems},
+	author = {Minot, Mason and Reddy, Sai T.},
+	year = {2024},
 }
 ```
 

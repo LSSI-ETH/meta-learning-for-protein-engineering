@@ -21,7 +21,10 @@ do
     do 
         for n in 0 1 2 3
         do
-            python main.py --base_model=$b --top_model=$m --data_type=4d5_exp --meta_set_number=$n
+            for e in 4 5 6 7
+            do
+                python main.py --base_model=$b --top_model=$m --data_type=4d5_exp --meta_set_number=$n --edit_distance=$e
+            done
         done
     done
 done
@@ -44,7 +47,10 @@ do
     do 
         for n in 0 1 2 3
         do
-            python main.py --base_model=$b --top_model=$m --data_type=5a12_PUL_exp --meta_set_number=$n
+            for e in 4 5 6 7
+            do
+                python main.py --base_model=$b --top_model=$m --data_type=5a12_PUL_exp --meta_set_number=$n --edit_distance=$e
+            done
         done
     done
 done
@@ -55,7 +61,10 @@ do
     do 
         for n in 0 1 2 3
         do
-            python main.py --base_model=$b --top_model=$m --data_type=5a12_2ag --meta_set_number=$n
+            for e in 4 5 6 7
+            do
+                python main.py --base_model=$b --top_model=$m --data_type=5a12_2ag --meta_set_number=$n --edit_distance=$e
+            done
         done
     done
 done

@@ -6,13 +6,14 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 import torch.nn.functional as F
+import os
 
 def set_learn_rates(args):
     if args.base_model == 'cnn':
         args.learn_rate = 5e-3
         args.vnet_lr = 1e-4
             
-    elif args.base_model == 'transformer':
+    elif 'transformer' in args.base_model:
         if args.top_model == 'l2rw': 
             args.learn_rate = 1e-3
         elif args.top_model =='mlc':
@@ -20,6 +21,41 @@ def set_learn_rates(args):
             args.learn_rate = 1e-2
         else:
             args.learn_rate = 5e-3
+
+
+def save_checkpoint(model, optimizer, epoch, gpu, args):
+
+    print("epoch: {} ".format(epoch+1))
+    checkpointing_path = args.checkpoint_path + f'checkpoint_{args.param_file}.pth'
+    print("Saving the Checkpoint: {}".format(checkpointing_path))
+    torch.save({
+        'epoch': epoch+1,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        }, checkpointing_path)
+
+def load_checkpoint(model, optimizer, gpu, args):
+    
+    print("--------------------------------------------")
+    print("Checkpoint file found!")
+    print("Loading Checkpoint From: {}".format(args.checkpoint_path + f'checkpoint_{args.param_file}.pth'))
+    
+    if torch.cuda.device_count() > 0:
+        map_location = torch.device('cuda')
+    else:
+        map_location = torch.device('cpu')
+        
+    checkpoint = torch.load(args.checkpoint_path + f'checkpoint_{args.param_file}.pth', map_location=map_location)
+
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    epoch_number = checkpoint['epoch']
+
+    print("Checkpoint File Loaded - epoch_number: {}".format(epoch_number))
+    print('Resuming training from epoch: {}'.format(epoch_number+1))
+    print("--------------------------------------------")
+    return model, optimizer, epoch_number
+
 
 
 #===========================   DataSet & Loaders         ================================ 
@@ -31,9 +67,9 @@ class CustomTorchDataset(Dataset):
     Parameters
     ----------
     encoded_seqs: list
-        categorically encoded protein or nucleotide sequences
+        categorically encoded protein sequences
     labels: list
-        class labels or regression fitness values corresponding to sequences
+        class labels 
 
     Returns
     -------
@@ -56,17 +92,16 @@ class CustomTorchDataset(Dataset):
 
 class Collater(object):
     """
-    Collater function to pad sequences of variable length (AAV data) and calculate padding mask. Fed to 
+    Collater function to pad sequences of variable length (if appropriate) and calculate padding mask. Fed to 
     torch DataLoader collate_fn.
     
     Parameters
     ----------
     alphabet: str
-        vocabulary size (i.e. amino acids, nucleotide ngrams). used for one-hot encoding dimension calculation
+        vocabulary size (i.e. amino acids). used for one-hot encoding dimension calculation
     pad_tok: float 
         padding token. zero padding is used as default
     args: argparse.ArgumentParser
-        arguments specified by user. used for this program to determine one-hot or categorical encoding
 
     Returns
     -------
@@ -89,7 +124,7 @@ class Collater(object):
         maxlen = sequences[0].shape[0]
         padded = torch.stack([torch.cat([i, i.new_zeros(maxlen - i.size(0))], 0) for i in sequences],0)
         
-        if self.args.base_model != 'transformer':
+        if 'transformer' not in self.args.base_model:
             padded = F.one_hot(padded, num_classes = self.vocab_length)
         
         return padded, y
@@ -103,9 +138,9 @@ def data_to_loader(x_train,x_val, x_test, x_meta, y_train, y_val, y_test, y_meta
     Parameters
     ----------
     x_train, x_val, x_test: list
-        categorically encoded protein or nucleotide training, validation, and testing sequences
+        categorically encoded protein sequences
     y_train, y_val, y_test: pandas.core.series.Series
-        class labels corresponding to training, validation, & testing sequences
+        class labels 
     batch_size: int
         batch size to be used for dataloader
     args: argparse.ArgumentParser
@@ -131,7 +166,7 @@ def data_to_loader(x_train,x_val, x_test, x_meta, y_train, y_val, y_test, y_meta
     val_data = CustomTorchDataset(x_val, y_val, transform = None)
     test_data = CustomTorchDataset(x_test, y_test, transform = None)
     
-    if args.base_model == 'transformer':
+    if 'transformer' in args.base_model:
         if len(y_meta) < batch_size : drop_last_meta_bool = False
         else: drop_last_meta_bool = True
         
@@ -140,19 +175,62 @@ def data_to_loader(x_train,x_val, x_test, x_meta, y_train, y_val, y_test, y_meta
         
         if len(y_val) < batch_size : drop_last_val_bool = False
         else: drop_last_val_bool = True
+
+    #necessary for 5a12_2ag edit_distance 6
+    elif args.data_type == '5a12_2ag' and args.edit_distance == 6:
+        drop_last_meta_bool, drop_last_train_bool, drop_last_val_bool = False, True, False
+        
     else:
         drop_last_meta_bool, drop_last_train_bool, drop_last_val_bool = False, False, False
         
     vocab_length = 21
-
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True, 
-                                               collate_fn=Collater(vocab_length = vocab_length, pad_tok=0., args=args), drop_last=drop_last_train_bool)
-    meta_loader = torch.utils.data.DataLoader(meta_data, batch_size=batch_size, shuffle=True,
-                                              collate_fn=Collater(vocab_length = vocab_length, pad_tok=0., args=args), drop_last=drop_last_meta_bool)
-    val_loader = torch.utils.data.DataLoader(val_data, batch_size=batch_size, shuffle=False,
-                                              collate_fn=Collater(vocab_length = vocab_length, pad_tok=0., args=args), drop_last=drop_last_val_bool)
-    test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=False,
-                                               collate_fn=Collater(vocab_length = vocab_length, pad_tok=0., args=args), drop_last=True)
+    
+    if args.non_block:
+        num_works = 2
+        pinned_mem = True
+    else:
+        num_works = 0
+        pinned_mem = False
+        
+    train_loader = torch.utils.data.DataLoader(train_data, 
+                                               batch_size=batch_size, 
+                                               shuffle=True, 
+                                               collate_fn=Collater(vocab_length = vocab_length,
+                                                                   pad_tok=0.,
+                                                                   args=args), 
+                                               drop_last=drop_last_train_bool,
+                                               num_workers = num_works,
+                                               pin_memory = pinned_mem)
+    
+    meta_loader = torch.utils.data.DataLoader(meta_data, 
+                                              batch_size=batch_size, 
+                                              shuffle=True,
+                                              collate_fn=Collater(vocab_length = vocab_length,
+                                                                  pad_tok=0.,
+                                                                  args=args), 
+                                              drop_last=drop_last_meta_bool,
+                                              num_workers = num_works,
+                                              pin_memory = pinned_mem)
+    
+    val_loader = torch.utils.data.DataLoader(val_data, 
+                                             batch_size=batch_size, 
+                                             shuffle=False,
+                                             collate_fn=Collater(vocab_length = vocab_length,
+                                                                 pad_tok=0.,
+                                                                 args=args), 
+                                             drop_last=drop_last_val_bool,
+                                             num_workers = num_works,
+                                             pin_memory = pinned_mem)
+    
+    test_loader = torch.utils.data.DataLoader(test_data, 
+                                              batch_size=batch_size, 
+                                              shuffle=False,
+                                              collate_fn=Collater(vocab_length = vocab_length,
+                                                                  pad_tok=0.,
+                                                                  args=args), 
+                                              drop_last=True,
+                                              num_workers = num_works,
+                                              pin_memory = pinned_mem)
 
     return train_loader, val_loader, test_loader, meta_loader
 
@@ -161,16 +239,12 @@ def data_to_loader(x_train,x_val, x_test, x_meta, y_train, y_val, y_test, y_meta
 
 def encode_ngrams(x,args):
     """
-    Converts amino acid or nucleotide sequences to categorically encoded vectors based on a chosen
-    encoding approach (ngram vocabulary).    
+    Converts amino acid to categorically encoded tensors.    
     
     Parameters
     ----------
     x: pandas.core.series.Series
-        pandas Series containing strings of protein or nucleotide training, validation, or testing sequences
-    args: argparse.ArgumentParser
-        arguments specified by user. used for this program to determine correct vocabulary size, output 
-        shape, and if a mask should be returned
+        pandas Series containing strings of proteinsequences
 
     Returns
     -------

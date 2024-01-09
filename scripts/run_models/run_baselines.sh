@@ -20,6 +20,8 @@ python elkanoto_exp.py
 
 cd ../pudms
 
+./make_dirs.sh
+
 R CMD BATCH install_pudms_packages.R
 
 python pudms_preprocessing_syn.py

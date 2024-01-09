@@ -28,7 +28,7 @@ def add_metric_to_df(df, is_float, metric_str):
 
 data_type = '5a12_PUL_syn'
 path = '../results/'
-transformer = f'{data_type}_transformer.csv'
+transformer = f'{data_type}_transformer_2.csv'
 cnn = f'{data_type}_cnn.csv'
 logistic_regression = f'{data_type}_logistic_regression.csv'
 mlp = f'{data_type}_mlp.csv'
@@ -38,6 +38,10 @@ elk_lr = f'{data_type}_Elkanoto_LR.csv'
 
 model_list = [cnn, transformer, logistic_regression, mlp, pudms, elk_rf, elk_lr]
 model_str_list = ['cnn', 'transformer', 'logistic_regression', 'mlp', 'pudms', 'elk_rf', 'elk_lr']
+
+
+#model_list = [cnn, transformer,logistic_regression, mlp]
+#model_str_list = ['cnn', 'transformer', 'logistic_regression', 'mlp']
 
 data = pd.DataFrame()
 for model, model_str in zip(model_list, model_str_list):
@@ -53,18 +57,21 @@ for model, model_str in zip(model_list, model_str_list):
     full_data = data.copy()
 
 data = full_data.copy()
+data = data.rename(columns={'top_model':'model', 'base_model':'basemodel', 
+                            'meta_set_number': 'meta_set' })
+
 
 baselines_pul = full_data[(full_data['basemodel'] == 'pudms') | 
                  (data['basemodel'] == 'elkanoto') ]
 
 data = pd.merge(data,baselines_pul, how='outer', indicator=True)
 data = data[data._merge.ne('both')].drop('_merge',1)
-    
+ 
 data['model'] = data['model'].replace({'fine-tune': 'FT Baseline',
                                                          'metaset_baseline': 'MSO Baseline' })
 
 data['model'] = data['model'].replace({'l2rw': 'L2RW', 'mlc': 'MLC'})
-data['basemodel'] = data['basemodel'].replace({'transformer': 'Transformer', 'cnn': 'CNN',
+data['basemodel'] = data['basemodel'].replace({'transformer_2': 'Transformer', 'cnn': 'CNN',
                                                'logistic_regression': 'Logistic Regression', 'mlp': 'MLP'})
 
 data = data[data['meta_set'] == 1]
@@ -83,7 +90,7 @@ results = sns.relplot(data= data_main, kind = 'line', x="truncate_factor", y="be
   .set_titles("{row_name}: {col_name}")
   .tight_layout(w_pad=0))
 
-results.set(ylim=(0.0, 1.0))
+results.set(ylim=(0.4, 1.0))
 
 results.legend.remove()
 lgd = results.fig.legend(handles=results.legend.legendHandles[:10], frameon= False, 
@@ -93,6 +100,9 @@ plt.subplots_adjust(wspace=0.1)
 fig_name_str = f'{data_type}'
 plt.savefig(f'{fig_name_str}.png', dpi=300, bbox_extra_artists=(lgd,), bbox_inches='tight')
 plt.savefig(f'{fig_name_str}.svg', bbox_extra_artists=(lgd,), bbox_inches='tight')
+
+
+
 
 
 #=================== Supp Figure ==============================================
@@ -150,4 +160,3 @@ fig_name_str = f'{data_type}_PUL_baselines'
 plt.savefig(f'{fig_name_str}.png', dpi=300, bbox_extra_artists=(lgd,), bbox_inches='tight')
 plt.savefig(f'{fig_name_str}.svg', bbox_extra_artists=(lgd,), bbox_inches='tight')
 
-    

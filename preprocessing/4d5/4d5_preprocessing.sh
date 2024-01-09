@@ -1,16 +1,16 @@
 #!/bin/bash
 
 #path to bbduk folder
-bbduk_path="/Users/mminot/Documents/BBTools/bbmap/"
+bbduk_path="/Users/user/Documents/BBTools/bbmap/"
 
 #path to raw deep sequencing data
-datapath="/Users/mminot/Documents/models/meta_2022/meta-learning-protein-engineering/data/raw_ngs/4d5/"
+datapath="https://github.com/LSSI-ETH/meta-learning-for-protein-engineering/data/raw_ngs/4d5/"
 
 #path to preprocessing scripts
-preprocessing_path="/Users/mminot/Documents/models/meta_2022/meta-learning-protein-engineering/preprocessing/4d5/"
+preprocessing_path="https://github.com/LSSI-ETH/meta-learning-for-protein-engineering/preprocessing/4d5/"
 
 #path to save preprocessed data
-outputpath="/Users/mminot/Documents/models/meta_2022/meta-learning-protein-engineering/data/4d5/"
+outputpath="https://github.com/LSSI-ETH/meta-learning-for-protein-engineering/data/4d5/"
 
 cd $bbduk_path
 

@@ -11,7 +11,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import LinearSVC
 
-parser = argparse.ArgumentParser(description='Meta Learning for Protein Engineering')
+parser = argparse.ArgumentParser(description='Meta Learning for Machine Learning-Guided Protein Engineering',
+                                 fromfile_prefix_chars='@')
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--num_classes', default='3', type=int,
@@ -19,21 +20,19 @@ parser.add_argument('--num_classes', default='3', type=int,
 parser.add_argument('--trunc', default='0.75', type=float,
                     help='training data truncate factor (float) between 0 and 1')
 parser.add_argument('--base_model', default='cnn', type=str,
-                    help='base model to use, base, resnet, or densenet')
+                    help='base model to use, cnn, transformer, logistic_regression, mlp')
 parser.add_argument('--data_type', default='4d5_syn', type=str,
-                    help='library dataset, options: 4d5_syn, 4d5_exp, 5a12_PUL_syn, 5a12_PUL_exp, 5a12_2target')
+                    help='library dataset, options: 4d5_syn, 4d5_exp, 5a12_PUL_syn, 5a12_PUL_exp, 5a12_2ag')
 parser.add_argument('--noise_fraction', default=0.0, type=float,
-                   help='percent label noise to synthetically inject')
+                help='percent label noise to synthetically inject')
 parser.add_argument('--learn_rate', default=5e-3, type=float,
-                   help='initial optimizer learning rate')
+                help='initial optimizer learning rate')
 parser.add_argument('--lr_scheduler', default=True, type=bool,
-                   help='include learn rate scheduler')
-parser.add_argument('--meta_size', default=96, type=int,
-                   help='number of meta sequences to include ')
+                help='include learn rate scheduler')
 parser.add_argument('--dropout', default=0.3, type=float,
-                   help='dropout fraction')
+                help='dropout fraction')
 parser.add_argument('--vnet_lr', default=1e-4, type=float,
-                   help='meta net learn rate')
+                help='meta net learn rate')
 parser.add_argument('--conv_filters', default=64, type=int,
                     help='number convolutional filters following transformer encoder')
 parser.add_argument('--top_model', default='fine-tune', type=str,
@@ -47,18 +46,25 @@ parser.add_argument('--kernel', default=3, type=int,
 parser.add_argument('--epochs', default=50, type=int,
                     help='number of training epochs')
 parser.add_argument('--data_trunc_single_run', default='False', type=str,
-                       help='runs model for only a single truncated data set. purpose: to optimize GPU use. options: True, False')
+                    help='runs model for only a single truncated data set. purpose: to optimize GPU use. options: True, False')
 parser.add_argument('--mlc_k_steps', default=1, type=int,
-                       help='mlc hyperparemeter k gradient steps')
+                    help='mlc hyperparemeter k gradient steps')
 parser.add_argument('--meta_set_number', default=1, type=int,
-                       help='meta set index, options 0,1,2,3')
+                    help='meta set index, options 0,1,2,3')
 parser.add_argument('--evaluate_valset', default='False', type=str,
-                       help='whether or not to evaluate metrics on validation set during training')
+                    help='whether or not to evaluate metrics on validation set during training')
 parser.add_argument('--alpha', default=0.0, type=float,
-                       help='synthetic PUL fraction of positives in unlabeled set. range 0.1-0.8 in 0.1 intervals')
-
+                    help='synthetic PUL fraction of positives in unlabeled set. range 0.1-0.8 in 0.1 intervals')
+parser.add_argument('--edit_distance', default=-1, type=int,
+                    help='train/test edit distance split (typically valid between 4 and 8 depending on dataset). -1 is default split')
+parser.add_argument('--log_train_and_meta_metrics', action='store_true',
+                help='enbale tensorboard logging & compute training and meta metrics during training. Default = False')
+parser.add_argument('--data_parallel', action='store_true',
+                help='torch.DataParallel for multiple gpus. controls non_blocking & pinned memory')
 parser.set_defaults()
-args = parser.parse_args()   
+
+
+args = parser.parse_args()
 
 data_type = '5a12_PUL_exp'
 args.data_type = data_type
@@ -102,10 +108,6 @@ def onehot(aa_seqs):
     enc_aa_seq = np.reshape(enc_aa_seq, (enc_aa_seq.shape[0], -1))
     return enc_aa_seq
 
-test_df = pd.read_csv(data_path  + f'{data_type}_test.csv') 
-X_test = onehot(test_df['AASeq'].to_list())
-y_test =  np.asarray(test_df['AgClass'])
-
 truncate_factor_list = [0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1.0]
 classifier_list = ['RF', 'SVM', 'NB']
 
@@ -114,67 +116,75 @@ for classifier_str in classifier_list:
     args.base_model = 'traditional_baseline'
     args.top_model = f'{classifier_str}'
     
-    for metaset in [0,1,2,3]:
-    
-        for seed in [1,2,3]:
-            
-            f1_scores = []
-            mcc_scores = []
-            
-            for trunc_factor in truncate_factor_list:
-            
-                meta_df = pd.read_csv(data_path  + f'{data_type}_meta_set_{metaset}.csv') 
-                train_df = pd.read_csv(data_path  + f'{data_type}_train_truncated_{str(trunc_factor)}.csv') 
+    for edit_distance in [4,5,6,7]:
 
-                hparams = {'data_type': args.data_type, 'basemodel': args.base_model, 'model': args.top_model, 
-                'noise_type': args.noise_type, 'noise_fraction': args.noise_fraction,
-                'train_len': len(train_df), 'meta_len': len(meta_df), 'seed': seed,
-                'meta_set': metaset,'optimizer': args.opt_id, 'learn_rate': args.learn_rate, 
-                'vnet_lr': args.vnet_lr, 'dropout': args.dropout,
-                'truncate_factor': trunc_factor, 'mlc_k_grad_steps': args.mlc_k_steps, 'alpha': 0.0}
+        args.edit_distance = edit_distance
+        test_df = pd.read_csv(data_path  + f'{data_type}_ed_{args.edit_distance}_test.csv') 
+        X_test = onehot(test_df['AASeq'].to_list())
+        y_test =  np.asarray(test_df['AgClass'])
+    
+        
+        for metaset in [0,1,2,3]:
+            
+            args.meta_set_number = metaset 
+            
+            for seed in [1,2,3]:
                 
-                train_df = pd.concat([train_df,meta_df],ignore_index=True)
+                f1_scores = []
+                mcc_scores = []
                 
-                X_train = onehot(train_df['AASeq'].to_list())
-                y_train = np.asarray(train_df['AgClass'])
-                
-                print("-------------------")
-                print(f'Meta set = {metaset}')
-                print(f'Truncate Factor = {trunc_factor}')
-                print(f"Classifier = {classifier_str}")
-                
-                if classifier_str == 'RF':
-                    estimator = RandomForestClassifier(
-                        n_estimators=200,
-                        criterion='gini',
-                        bootstrap=True,
-                        n_jobs=1,
-                        random_state = seed
-                    )
-                elif classifier_str == 'NB':
-                    estimator = GaussianNB()
-                elif classifier_str == 'SVM':
-                    estimator = LinearSVC(random_state= seed)
+                for trunc_factor in truncate_factor_list:
                     
-                estimator.fit(X_train, y_train)
-                y_pred = estimator.predict(X_test)
+                    args.trunc = trunc_factor
                 
-                mcc =round(matthews_corrcoef(y_test, y_pred), 4)
-                f1_micro = round(f1_score(y_test, y_pred, average='micro'), 4)
-                f1_scores.append(f1_micro)
-                mcc_scores.append(mcc)
-                print(f'F1 Micro: {f1_micro}')
-                print(f'MCC: {mcc}')
-                
-                metric_dict = {'output/best_f1': 0, 'output/best_mcc': 0,
-                            'output/best_f1_epoch': 0, 'output/best_mcc_epoch': 0,
-                            'output/final_val_mcc': mcc, 'output/final_val_f1':f1_micro,
-                            'output/test_mcc': mcc, 'output/test_f1': f1_micro}
-                
-                output_dict = {**hparams, **metric_dict}
-                output_time = str(datetime.datetime.now().strftime("%d-%m-%Y_%H_%M"))
-                output_dict['time'] = output_time
-                
-                filename = f'../../results/{args.data_type}_{args.base_model}.csv'
-                df = pd.DataFrame.from_dict(output_dict, 'index').T.to_csv(filename, mode='a', index=False, header=(not os.path.exists(filename)))
-                
+                    meta_df = pd.read_csv(data_path  + f'{data_type}_meta_set_{args.meta_set_number}_ed_{args.edit_distance}.csv') 
+                    train_df = pd.read_csv(data_path  + f'{data_type}_train_ed_{args.edit_distance}_truncated_{str(trunc_factor)}.csv') 
+    
+                    hparams = vars(args)
+                    
+                    train_df = pd.concat([train_df,meta_df],ignore_index=True)
+                    
+                    X_train = onehot(train_df['AASeq'].to_list())
+                    y_train = np.asarray(train_df['AgClass'])
+                    
+                    print("-------------------")
+                    print(f'Edit Distance = {args.edit_distance}')
+                    print(f'Meta set = {args.meta_set_number}')
+                    print(f'Truncate Factor = {trunc_factor}')
+                    print(f"Classifier = {classifier_str}")
+                    
+                    if classifier_str == 'RF':
+                        estimator = RandomForestClassifier(
+                            n_estimators=200,
+                            criterion='gini',
+                            bootstrap=True,
+                            n_jobs=1,
+                            random_state = seed
+                        )
+                    elif classifier_str == 'NB':
+                        estimator = GaussianNB()
+                    elif classifier_str == 'SVM':
+                        estimator = LinearSVC(random_state= seed)
+                        
+                    estimator.fit(X_train, y_train)
+                    y_pred = estimator.predict(X_test)
+                    
+                    mcc =round(matthews_corrcoef(y_test, y_pred), 4)
+                    f1_micro = round(f1_score(y_test, y_pred, average='micro'), 4)
+                    f1_scores.append(f1_micro)
+                    mcc_scores.append(mcc)
+                    print(f'F1 Micro: {f1_micro}')
+                    print(f'MCC: {mcc}')
+                    
+                    metric_dict = {'output/best_f1': 0, 'output/best_mcc': 0,
+                                'output/best_f1_epoch': 0, 'output/best_mcc_epoch': 0,
+                                'output/final_val_mcc': mcc, 'output/final_val_f1':f1_micro,
+                                'output/test_mcc': mcc, 'output/test_f1': f1_micro}
+                    
+                    output_dict = {**hparams, **metric_dict}
+                    output_time = str(datetime.datetime.now().strftime("%d-%m-%Y_%H_%M"))
+                    output_dict['time'] = output_time
+                    
+                    filename = f'../../results/{args.data_type}_{args.base_model}.csv'
+                    df = pd.DataFrame.from_dict(output_dict, 'index').T.to_csv(filename, mode='a', index=False, header=(not os.path.exists(filename)))
+                    

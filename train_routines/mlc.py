@@ -126,14 +126,21 @@ class MLC(BaseModel):
 
             self.vnet_lr = args.vnet_lr
             self.mlc_k_steps = args.mlc_k_steps
+            self.args = args
+            self.non_block = args.non_block
             
             cls_dim = 128
             hx_dim = 512
-            hidden_dim = 64
+            hidden_dim = args.mlc_hdim
             
-            self.meta_net = MetaNet(hx_dim, cls_dim, hidden_dim, self.num_classes, args).to(self.device)            
-            self.optimizer_vnet = torch.optim.Adam(self.meta_net.parameters(), lr=self.vnet_lr, weight_decay = 0, amsgrad=True, eps = 1e-8)
-
+            self.meta_net = MetaNet(hx_dim, cls_dim, hidden_dim, 
+                                    self.num_classes, args).to(self.device)            
+            
+            self.optimizer_vnet = torch.optim.Adam(self.meta_net.parameters(), 
+                                                   lr=self.vnet_lr, 
+                                                   weight_decay = 0, 
+                                                   amsgrad=True, eps = 1e-8)
+            
     def train_step(self, train_loader, meta_loader, epoch, tensorboard_writer,batch_size):
         
         f1 = F1(num_classes = self.num_classes).to(self.device)
@@ -152,20 +159,23 @@ class MLC(BaseModel):
         
         for batch_idx, (inputs, targets) in enumerate(train_loader):
                       
-            inputs, targets = inputs.to(self.device), targets.to(self.device)
+            inputs = inputs.to(self.device, non_blocking = self.non_block) 
+            targets = targets.to(self.device, non_blocking = self.non_block)
+            
             inputs_val, targets_val = next(meta_loader_iter)
-            inputs_val, targets_val = inputs_val.to(self.device), targets_val.to(self.device)
+            inputs_val = inputs_val.to(self.device, non_blocking = self.non_block)
+            targets_val = targets_val.to(self.device, non_blocking = self.non_block)
             
             if self.scheduler != None: eta = self.scheduler.get_last_lr()[0]
             else: eta = self.learning_rate
             
             # compute gw for updating meta_net
-            logit_g = self.get_predictions(self.model, inputs_val)
+            logit_g = self.get_predictions(self.model, inputs_val, self.args)
             loss_g = F.cross_entropy(logit_g, targets_val)        
             gw = torch.autograd.grad(loss_g, self.model.parameters())
             
             # given current meta net, get corrected label
-            logit_s, x_s_h = self.mlc_get_predictions(self.model, inputs)
+            logit_s, x_s_h = self.mlc_get_predictions(self.model, inputs, self.args)
             
             pseudo_target_s = self.meta_net(x_s_h.detach(), targets)
             loss_s = soft_cross_entropy(logit_s, pseudo_target_s)
@@ -183,7 +193,7 @@ class MLC(BaseModel):
             Hw = 1
             
             #3. compute d_w' L_{D}(w')
-            logit_g = self.get_predictions(self.model, inputs_val)
+            logit_g = self.get_predictions(self.model, inputs_val, self.args)
             loss_g = F.cross_entropy(logit_g, targets_val)
             
             gw_prime = torch.autograd.grad(loss_g, self.model.parameters())
@@ -208,7 +218,7 @@ class MLC(BaseModel):
                 if param.grad is not None:
                     param.grad.add_(gamma * dw_prev[i])
                     dw_prev[i] = param.grad.clone()
-        
+                    
             if (steps+1) % (gradient_steps)==0: # T steps proceeded by main_net
                 self.optimizer_vnet.step()
                 dw_prev = [0 for param in self.meta_net.parameters()] # 0 to reset 
@@ -217,6 +227,7 @@ class MLC(BaseModel):
             for i, param in enumerate(self.model.parameters()):
                 param.data = f_param[i]
                 param.grad = f_param_grads[i].data
+            
             self.optimizer.step()
                 
             batch_f1_mtr, batch_mcc_mtr = super().eval_training_batch(f1, mcc, loss_s, 
@@ -224,14 +235,16 @@ class MLC(BaseModel):
 
         if self.scheduler is not None:
                 self.scheduler.step()
-                
-        with torch.no_grad():
-            epoch_f1 = f1.compute()
-            epoch_mcc = mcc.compute()
-            tensorboard_writer.add_scalar('train/ F1', epoch_f1, epoch)
-            tensorboard_writer.add_scalar('train/ MCC', epoch_mcc, epoch)
-            tensorboard_writer.flush()
-            
+
+        if self.args.log_train_and_meta_metrics:        
+            with torch.no_grad():
+                epoch_f1 = f1.compute()
+                epoch_mcc = mcc.compute()
+                tensorboard_writer.add_scalar('train/ F1', epoch_f1, epoch)
+                tensorboard_writer.add_scalar('train/ MCC', epoch_mcc, epoch)
+                tensorboard_writer.flush()
+    
+
 def weight_init(m):
     if isinstance(m, nn.Conv1d) or isinstance(m, nn.Linear):
         nn.init.kaiming_normal_(m.weight, nonlinearity='relu')

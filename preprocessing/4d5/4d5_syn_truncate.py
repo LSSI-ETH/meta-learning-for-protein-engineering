@@ -25,14 +25,7 @@ def batch_meta_set(meta_df_full):
     
     Parameters
     ----------
-    train_truncated : pandas dataframe
-        dataframe contianing training data with corrupted labels.
-    train_clean : pandas dataframe
-        dataframe containing training data with trusted labels.
-    truncate_factor : float
-        factor by which the training set is being truncated.
-    dirty_meta : BOOL
-            Determines whether meta set should be batched from training set containining trusted or corrupted labels.
+    meta_df_full: dataframe of all meta sequences to be truncated
 
     Returns
     -------

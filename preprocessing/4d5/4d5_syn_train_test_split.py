@@ -48,7 +48,7 @@ path_4d5 = '../../data/4d5/'
 high_data = pd.read_csv(path_4d5 + '4d5_high_4th_sort.csv')
 low_data = pd.read_csv(path_4d5 + '4d5_low_4th_sort.csv')
 neg_data_full = pd.read_csv(path_4d5 + '4d5_neg_4th_sort.csv')
-#remove sequences with proline at position 7
+#remove sequences with proline at position 7 as high frequencey of this residue over-simplifies learning
 neg_data = neg_data_full[~neg_data_full['AASeq'].str.contains(r'^.{7}[P]')].copy()
 
 high_data['AgClass'] = 2
@@ -62,7 +62,6 @@ neg_data = neg_data.sample(frac = 1, random_state = 1)
 data_frame = class_balance_3class_4d5([high_data, low_data, neg_data], use_LD = False, islist = True)
 
 data_frame, _ = consensus_seq_and_LD_to_df(data_frame = data_frame, seq_col_str = 'AASeq', return_df = True)
-
 
 #split train & test set by edit distance, class balance, & save to csv
 train_test_LD_split_threshold = 6

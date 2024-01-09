@@ -96,57 +96,60 @@ data_frame, _ = consensus_seq_and_LD_to_df(data_frame = data_frame, seq_col_str 
 data_frame_d = data_frame[data_frame['df'] == 'dirty']
 data_frame = data_frame[data_frame['df'] == 'clean']
 
-#fractionate train & test sets by edit distance from overall consensus sequence
-train_test_LD_split_threshold = 6
-train_df = data_frame[data_frame['LD'] <= train_test_LD_split_threshold]
-test_df = data_frame[data_frame['LD'] > train_test_LD_split_threshold]
-
-train_df = train_df[(train_df['LD'] != 2) & (train_df['LD'] != 1)]
-train_df = class_balance_3class_4d5(train_df, use_LD = True, islist = False)
-test_df = class_balance_3class_4d5(test_df, use_LD = True, islist = False)
-
-train_df_d = data_frame_d[data_frame_d['LD'] <= train_test_LD_split_threshold]
-test_df_d = data_frame_d[data_frame_d['LD'] > train_test_LD_split_threshold]
-
-train_df_d = class_balance_3class_4d5(train_df_d, use_LD = True, islist = False)
-test_df_d = class_balance_3class_4d5(test_df_d, use_LD = True, islist = False)
-
-#separate into classes for data set splitting
-train_high = train_df[(train_df['AgClass'] == 2)]
-train_low = train_df[(train_df['AgClass'] == 1)] 
-train_neg = train_df[train_df['AgClass'] == 0]
-
-#allocate 25% training sequences for use in validation and meta sets
-train_high, val_meta_high, _, _ = train_test_split(train_high, train_high['AgClass'], test_size = 0.25,
-                                                          random_state = 1, shuffle = True, stratify = train_high['LD'])
-
-val_high, meta_high, _, _ = train_test_split(val_meta_high, val_meta_high['AgClass'], test_size = 0.20,
-                                                          random_state = 1, shuffle = True, stratify = val_meta_high['LD'])
-
-train_low, val_meta_low, _, _ = train_test_split(train_low, train_low['AgClass'], test_size = 0.25,
-                                                          random_state = 1, shuffle = True, stratify = train_low['LD'])
-
-val_low, meta_low, _, _ = train_test_split(val_meta_low, val_meta_low['AgClass'], test_size = 0.20,
-                                                          random_state = 1, shuffle = True, stratify = val_meta_low['LD'])
-
-
-train_neg, val_meta_neg, _, _ = train_test_split(train_neg, train_neg['AgClass'], test_size = 0.25,
-                                                          random_state = 1, shuffle = True, stratify = train_neg['LD'])
-
-val_neg, meta_neg, _, _ = train_test_split(val_meta_neg, val_meta_neg['AgClass'], test_size = 0.20,
-                                                          random_state = 1, shuffle = True, stratify = val_meta_neg['LD'])
-
-train_df = pd.concat([train_high, train_low, train_neg], ignore_index = True).sample(frac = 1, random_state = 1)
-val_df = pd.concat([val_high, val_low, val_neg], ignore_index = True).sample(frac = 1, random_state = 1)
-meta_df = pd.concat([meta_high, meta_low, meta_neg], ignore_index = True).sample(frac = 1, random_state = 1)
-
-train_df_d = class_balance_3class_4d5(train_df_d, use_LD = False, islist = False)
-#val_df = class_balance_3class_4d5(val_df, use_LD = False, islist = False)
-
-train_df_d.to_csv(path_4d5 + f'{data_type}_train.csv', index=False, header=True)
-train_df.to_csv(path_4d5 + f'{data_type}_train_clean.csv', index=False, header=True)
-val_df.to_csv(path_4d5 + f'{data_type}_val.csv', index=False, header=True)
-test_df.to_csv(path_4d5 + f'{data_type}_test.csv', index=False, header=True)
-meta_df.to_csv(path_4d5 + f'{data_type}_meta.csv', index=False, header=True)
-
-print('Data splitting completed')
+#split train & test set by edit distance, class balance, & save to csv
+for ed_thresh in [4,5,6,7,8]:
+    
+    train_test_LD_split_threshold = ed_thresh
+    train_df = data_frame[data_frame['LD'] <= train_test_LD_split_threshold]
+    test_df = data_frame[data_frame['LD'] > train_test_LD_split_threshold]
+    
+    train_df = train_df[(train_df['LD'] != 2) & (train_df['LD'] != 1)]
+    train_df = class_balance_3class_4d5(train_df, use_LD = True, islist = False)
+    test_df = class_balance_3class_4d5(test_df, use_LD = True, islist = False)
+    
+    train_df_d = data_frame_d[data_frame_d['LD'] <= train_test_LD_split_threshold]
+    test_df_d = data_frame_d[data_frame_d['LD'] > train_test_LD_split_threshold]
+    
+    train_df_d = class_balance_3class_4d5(train_df_d, use_LD = True, islist = False)
+    test_df_d = class_balance_3class_4d5(test_df_d, use_LD = True, islist = False)
+    
+    #separate into classes for data set splitting
+    train_high = train_df[(train_df['AgClass'] == 2)]
+    train_low = train_df[(train_df['AgClass'] == 1)] 
+    train_neg = train_df[train_df['AgClass'] == 0]
+    
+    #allocate 25% training sequences for use in validation and meta sets
+    train_high, val_meta_high, _, _ = train_test_split(train_high, train_high['AgClass'], test_size = 0.25,
+                                                              random_state = 1, shuffle = True, stratify = train_high['LD'])
+    
+    val_high, meta_high, _, _ = train_test_split(val_meta_high, val_meta_high['AgClass'], test_size = 0.20,
+                                                              random_state = 1, shuffle = True, stratify = val_meta_high['LD'])
+    
+    train_low, val_meta_low, _, _ = train_test_split(train_low, train_low['AgClass'], test_size = 0.25,
+                                                              random_state = 1, shuffle = True, stratify = train_low['LD'])
+    
+    val_low, meta_low, _, _ = train_test_split(val_meta_low, val_meta_low['AgClass'], test_size = 0.20,
+                                                              random_state = 1, shuffle = True, stratify = val_meta_low['LD'])
+    
+    
+    train_neg, val_meta_neg, _, _ = train_test_split(train_neg, train_neg['AgClass'], test_size = 0.25,
+                                                              random_state = 1, shuffle = True, stratify = train_neg['LD'])
+    
+    val_neg, meta_neg, _, _ = train_test_split(val_meta_neg, val_meta_neg['AgClass'], test_size = 0.20,
+                                                              random_state = 1, shuffle = True, stratify = val_meta_neg['LD'])
+    
+    train_df = pd.concat([train_high, train_low, train_neg], ignore_index = True).sample(frac = 1, random_state = 1)
+    val_df = pd.concat([val_high, val_low, val_neg], ignore_index = True).sample(frac = 1, random_state = 1)
+    meta_df = pd.concat([meta_high, meta_low, meta_neg], ignore_index = True).sample(frac = 1, random_state = 1)
+    
+    train_df_d = class_balance_3class_4d5(train_df_d, use_LD = False, islist = False)
+    #val_df = class_balance_3class_4d5(val_df, use_LD = False, islist = False)
+    
+    
+    train_df.to_csv(path_4d5 + f'{data_type}_train_clean_ed_{ed_thresh}.csv', index=False, header=True)
+    train_df_d.to_csv(path_4d5 + f'{data_type}_ed_{ed_thresh}_train.csv', index=False, header=True)
+    val_df.to_csv(path_4d5 + f'{data_type}_ed_{ed_thresh}_val.csv', index=False, header=True)
+    test_df.to_csv(path_4d5 + f'{data_type}_ed_{ed_thresh}_test.csv', index=False, header=True)
+    meta_df.to_csv(path_4d5 + f'{data_type}_ed_{ed_thresh}_meta.csv', index=False, header=True)
+    
+    print('Data splitting completed')

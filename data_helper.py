@@ -2,11 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import pandas as pd
-import numpy as np
-import torch
-from sklearn.model_selection import train_test_split
-from torch.utils.data import Dataset
-import torch.nn.functional as F
 from utils import *
 from train_routines  import *
 
@@ -15,19 +10,31 @@ def batch_datasets(args, truncate_factor, seed_entry):
     
     path_5a12 = 'data/5a12/'
     path_4d5 = 'data/4d5/'
-    
     if args.data_type.startswith('5a12'): data_path = path_5a12
     elif args.data_type.startswith('4d5'): data_path = path_4d5
-    
-    if args.data_type == '5a12_PUL_syn':
-        train_df = pd.read_csv(data_path  + f'{args.data_type}_alpha_{args.alpha}_train_truncated_{str(truncate_factor)}.csv') 
-    else:
-        train_df = pd.read_csv(data_path  + f'{args.data_type}_train_truncated_{str(truncate_factor)}.csv') 
+
         
-    val_df  = pd.read_csv(data_path + f'{args.data_type}_val.csv')        
-    test_df  = pd.read_csv(data_path + f'{args.data_type}_test.csv')
-    meta_df = pd.read_csv(data_path  + f'{args.data_type}_meta_set_{str(args.meta_set_number)}.csv')
+    if 'syn' in args.data_type:
+        
+        if args.data_type == '5a12_PUL_syn':
+            train_df = pd.read_csv(data_path  + f'{args.data_type}_alpha_{args.alpha}_train_truncated_{str(truncate_factor)}.csv') 
+        else:
+            train_df = pd.read_csv(data_path  + f'{args.data_type}_train_truncated_{str(truncate_factor)}.csv') 
+            
+        val_df  = pd.read_csv(data_path + f'{args.data_type}_val.csv')        
+        test_df  = pd.read_csv(data_path + f'{args.data_type}_test.csv')
+        meta_df = pd.read_csv(data_path  + f'{args.data_type}_meta_set_{str(args.meta_set_number)}.csv')
     
+    else:
+        
+        assert args.edit_distance != -1, 'Please supply edit_distance argument for experimental learning tasks;'\
+             ' an integer between 4 and 7, i.e. --edit_distance=4'
+
+        train_df = pd.read_csv(data_path  + f'{args.data_type}_train_ed_{args.edit_distance}_truncated_{str(truncate_factor)}.csv') 
+        val_df  = pd.read_csv(data_path + f'{args.data_type}_ed_{args.edit_distance}_val.csv')        
+        test_df  = pd.read_csv(data_path + f'{args.data_type}_ed_{args.edit_distance}_test.csv')
+        meta_df = pd.read_csv(data_path  + f'{args.data_type}_meta_set_{str(args.meta_set_number)}_ed_{args.edit_distance}.csv')
+        
     def x_y_split(df, args):
         x,y = df['AASeq'], df['AgClass']
         return x, y
