@@ -3,7 +3,8 @@
 
 # Meta Learning Improves Robustness and Performance in Machine Learning-Guided Protein Engineering
 
-This repository contains code to perform the analysis described [[Minot & Reddy 2024](https://doi.org/10.1016/j.cels.2023.12.003)].
+This repository contains code to perform the analysis described Minot & Reddy 2024. 
+[[Cell Systems](https://doi.org/10.1016/j.cels.2023.12.003)] [[bioRxiv](https://www.biorxiv.org/content/10.1101/2023.01.30.526201v1)].
 
 ## Table of contents
 1. [Prepare Working Environment](#prepare-working-environment)
