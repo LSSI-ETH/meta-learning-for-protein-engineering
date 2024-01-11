@@ -12,10 +12,11 @@ This folder contains the 4D5 scFv trastuzumab binding data. The raw data files w
 The sequences in the sort files are formatted by concatenating 9 residues from the CDRH3 with 8 residues from the CDRL3, e.g. [CDRH3, CDRL3]. For example,
 ```
 AASeq
+WGGDGFYAMQHYTTPPT
 WNHDGFYQMQFYDSPPG
 WWSPGFYMMQFFCSPPN
 ```
-
+where the fist sequence in the above list correspondds to the wild type 4D5 H3 and L3 regions
 
 
 ### Learning tasks
