@@ -58,7 +58,7 @@ Raw data is available at [[NCBI](https://www.ncbi.nlm.nih.gov/bioproject/?term=1
 or on Mendeley in two parts: [[Part 1](https://data.mendeley.com/datasets/56h8gp94fj/1)] and [[Part 2](https://data.mendeley.com/datasets/s829ccsg6f/1)].
 Save data to `data/raw_ngs/`.
 
-After installing [[BBDUK](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/installation-guide/)]. Modify the path to BBDUK and this repo before executing `5a12_preprocessing_raw_ngs.sh` and `4d5_preprocessing_raw_ngs.sh`. Then proceed to B).
+After installing [[BBDUK](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/installation-guide/)]. Modify the path to BBDUK and this repo before executing `5a12_preprocessing_raw_ngs.sh` and `4d5_preprocessing_raw_ngs.sh` in `preprocessing/`. Then proceed to B).
 
 
 #### B) From preprocessed NGS:
