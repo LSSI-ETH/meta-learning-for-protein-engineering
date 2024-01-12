@@ -1,6 +1,8 @@
 MIT License
 
-Copyright (c) 2022 Mason Minot
+Copyright (c) 2024 Mason Minot
+
+This license applies to works newly developed as part of https://doi.org/10.1016/j.cels.2023.12.003. This repo contains third-party software components governed by their respective license(s).
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

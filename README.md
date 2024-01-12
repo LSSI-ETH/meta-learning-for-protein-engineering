@@ -12,6 +12,7 @@ This repository contains code to perform the analysis described Minot & Reddy 20
 3. [Reproducing Study Results](#reproducing-study-results)
 4. [Citing This Work](#citing-this-work)
 5. [Citing Supporting Repositories](#citing-supporting-repositories)
+6. [License](#license)
 
 
 ## Prepare Working Environment
@@ -159,3 +160,5 @@ For ElkaNoto [[GitHub](https://github.com/pulearn/pulearn)]:
 }
 ```
 
+## License
+The licenses for the software used in this study can be found on the respective githubs as well and in `license/`
