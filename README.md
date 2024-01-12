@@ -63,7 +63,7 @@ After installing [[BBDUK](https://jgi.doe.gov/data-and-tools/software-tools/bbto
 
 #### B) From preprocessed NGS:
 
-To execute preprocessing and train/test splitting for each task, modify the path to this repo in `5a12_preprocessing.sh` and `4d5_preprocessing.sh` and run the scripts.
+To execute preprocessing and train/test splitting for each task, in `preprocessing/`, run `5a12_preprocessing.sh` and `4d5_preprocessing.sh`.
 Processed datasets for the full analysis in the paper will then be added to `data/`.
 
 
