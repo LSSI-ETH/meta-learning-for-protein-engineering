@@ -94,7 +94,7 @@ Please cite our work when referencing this repository.
 ```
 
 ## Citing Supporting Repositories
-For L2RW [[GitHub](https://github.com/uber-research/learning-to-reweight-examples)]:
+For L2RW [[GitHub](https://github.com/uber-research/learning-to-reweight-examples)] [[License](https://github.com/uber-research/learning-to-reweight-examples/blob/master/LICENSE)]:
 
 ```
 @inproceedings{ren_learning_2018,
@@ -110,7 +110,7 @@ For L2RW [[GitHub](https://github.com/uber-research/learning-to-reweight-example
 }
 ```
 
-For MLC [[GitHub](https://github.com/microsoft/MLC)]:
+For MLC [[GitHub](https://github.com/microsoft/MLC)] [[License](https://github.com/microsoft/MLC/blob/main/LICENSE)]:
 
 ```
 @article{zheng_meta_2021,
@@ -142,7 +142,7 @@ author = {Hyebin Song and Bennett J. Bremer and Emily C. Hinds and Garvesh Rasku
 }
 ```
 
-For ElkaNoto [[GitHub](https://github.com/pulearn/pulearn)]:
+For ElkaNoto [[GitHub](https://github.com/pulearn/pulearn)] [[License_pulearn](https://github.com/pulearn/pulearn/blob/master/LICENSE.md)] [[License_ElkaNoto](https://github.com/pulearn/pulearn/blob/master/ELKANOTO_LICENSE.md)]:
 
 ```
 @inproceedings{elkan_learning_2008,
@@ -159,6 +159,3 @@ For ElkaNoto [[GitHub](https://github.com/pulearn/pulearn)]:
 	year = {2008},
 }
 ```
-
-## License
-The licenses for the software used in this study can be found on the respective githubs as well and in `license/`
