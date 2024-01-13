@@ -12,7 +12,6 @@ This repository contains code to perform the analysis described Minot & Reddy 20
 3. [Reproducing Study Results](#reproducing-study-results)
 4. [Citing This Work](#citing-this-work)
 5. [Citing Supporting Repositories](#citing-supporting-repositories)
-6. [License](#license)
 
 
 ## Prepare Working Environment
