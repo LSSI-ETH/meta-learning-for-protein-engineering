@@ -17,7 +17,7 @@ TPAGGYTYYFLSSFGVA
 TPAGGYTYYFLSRFGVA
 TLMGGITVYFLSSFGVA
 ```
-where the fist sequence in the above list correspondds to the wild type 5A12 H2 and L1 regions
+__For reference__: the fist sequence in the above list correspondds to the wild type 5A12 H2 and L1 regions
 
 ### Learning tasks
 The learning two learning tasks associated with the 5A12 data are Positive and Unlabeled Learning (PUL) and Multi-Antigen Classification from Largely Single-Antigen Data and correspond to figures 5-8 in the paper.

@@ -16,7 +16,7 @@ WGGDGFYAMQHYTTPPT
 WNHDGFYQMQFYDSPPG
 WWSPGFYMMQFFCSPPN
 ```
-where the fist sequence in the above list correspondds to the wild type 4D5 H3 and L3 regions
+__For reference__: the fist sequence in the above list correspondds to the wild type 4D5 H3 and L3 regions
 
 
 ### Learning tasks

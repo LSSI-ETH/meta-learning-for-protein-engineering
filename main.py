@@ -35,11 +35,9 @@ def main(args):
     if torch.cuda.is_available():
             use_cuda = True
             args.non_block = True
-
     else:
         use_cuda = False
         args.non_block = False
-        
         
     device = torch.device("cuda" if use_cuda else "cpu")
 
@@ -56,8 +54,7 @@ def main(args):
         
         #==================== Instantiate Model & Optimizer ======================
         
-        model_dict = {'standard': BaseModel(args,device),
-                    'fine-tune': BaseModel(args,device),
+        model_dict = {'fine-tune': BaseModel(args,device),
                     'l2rw': L2RW(args, device),
                     'mlc': MLC(args,device),
                     'metaset_baseline': MetaSetOnlyBaseline(args,device)}
@@ -233,8 +230,7 @@ def main(args):
             del model
 
             #reinstantiate model option
-            model_dict = {'vanilla': BaseModel(args,device),
-                        'fine-tune': BaseModel(args,device),
+            model_dict = {'fine-tune': BaseModel(args,device),
                         'l2rw': L2RW(args, device),
                         'mlc': MLC(args,device),
                         'metaset_baseline': MetaSetOnlyBaseline(args,device)}
