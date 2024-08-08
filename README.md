@@ -1,7 +1,7 @@
 ![Python Version: 3.8.5](https://img.shields.io/badge/Python%20Version-3.8.5-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen)](https://opensource.org/licenses/MIT)
 
-# Meta Learning Improves Robustness and Performance in Machine Learning-Guided Protein Engineering
+# Meta learning addresses noisy and under-labeled data in machine learning-guided antibody engineering
 
 This repository contains code to perform the analysis described Minot & Reddy 2024. 
 [[Cell Systems](https://doi.org/10.1016/j.cels.2023.12.003)] [[bioRxiv](https://www.biorxiv.org/content/10.1101/2023.01.30.526201v1)].
@@ -12,7 +12,6 @@ This repository contains code to perform the analysis described Minot & Reddy 20
 3. [Reproducing Study Results](#reproducing-study-results)
 4. [Citing This Work](#citing-this-work)
 5. [Citing Supporting Repositories](#citing-supporting-repositories)
-
 
 ## Prepare Working Environment
 
@@ -38,7 +37,8 @@ Note: study results were executed with torch 1.11.0+cu113. Environment contains 
 
 The following data is provided in `data/` to facilitate ease of use:
 1. preprocessed NGS data in `data/4d5` and `data/5a12`
-2. Fully processed train, meta, validation, and test sets are planned for upload. In the meantime, one can curate the data into train, val, meta, and test sets for each learning task via the preprocessing pipeline described in Step 1 below.
+2. Fully processed clean datasets have been uploaded in `data/preprocessed_full_datasets`
+3. Train, meta, validation, and test sets are planned for upload. In the meantime, one can curate the data into train, val, meta, and test sets for each learning task via the preprocessing pipeline described in Step 1 below.
 
 ## Reproducing Study Results
 
